@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Multiplication Table Verifier</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', sans-serif;
+      background: #f2f9ff;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 140px;
+    }
+
+    .table-container {
+      width: 22%;
+      min-width: 200px;
+      margin: 10px;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fffbe7;
+      box-shadow: 0 0 10px #ccc;
+      border: 2px solid #ccc;
+    }
+
+    .table-container h3 {
+      text-align: center;
+      color: #444;
+    }
+
+    .line {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+
+    .line label {
+      flex: 1;
+    }
+
+    .line input {
+      width: 60px;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    .feedback {
+      width: 35px;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .emoji {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-top: 10px;
+      display: inline-block;
+    }
+
+    button {
+      display: block;
+      margin: 5px auto;
+      padding: 5px 10px;
+      background: #0077cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #005fa3;
+    }
+
+    #overall-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #e6f2ff;
+      padding: 10px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 999;
+    }
+
+    #overall-progress {
+      width: 80%;
+      height: 20px;
+    }
+
+    #score-display {
+      font-size: 1.5rem;
+      margin-top: 5px;
+      display: inline-block;
+    }
+    
+  </style>
+</head>
+<body>
+  <div id="overall-container">
+    <h2>Overall Progress</h2>
+    <progress id="overall-progress" value="0" max="80"></progress>
+    <div id="score-display"> 0 / 80 🤔</div>
+  </div>
+
+  <script>
+    const emojiFaces = ['😢', '😟', '😐', '🙂', '😀', '😃', '😄', '😁', '😆', '🥳', '🎉'];
+    const colors = ['#ffe0e0', '#e0ffe0', '#e0e0ff', '#ffffe0', '#ffe0ff', '#e0ffff', '#f0f0f0', '#ffd9b3'];
+
+    for (let t = 2; t <= 9; t++) {
+      document.write(`
+        <div class="table-container" style="background:${colors[t - 2]}" id="container-${t}">
+          <h3>Table of ${t} <div class="emoji" id="emoji-${t}">🤔</div></h3>
+          <div id="table-${t}">
+            ${Array.from({length: 10}, (_, i) => `
+              <div class="line">
+                <label>${t} x ${i+1} =   </label>
+                <input type="number" data-table="${t}" data-index="${i+1}" />
+                <div class="feedback" id="feedback-${t}-${i+1}"></div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll("input[type='number']").forEach(input => {
+        input.addEventListener("input", () => {
+          const tableNum = parseInt(input.dataset.table);
+          const index = parseInt(input.dataset.index);
+          const expected = tableNum * index;
+          const feedback = document.getElementById(`feedback-${tableNum}-${index}`);
+
+          if (input.value === "") {
+            feedback.innerText = "❓";
+            updateEmoji(tableNum);
+            updateOverall();
+            return;
+          }
+
+          if (parseInt(input.value) === expected) {
+            if (feedback.innerText !== "✅") {
+              document.getElementById("correct-sound").play();
+            }
+            feedback.innerText = "✅";
+          } else {
+            if (feedback.innerText !== "❌") {
+              document.getElementById("wrong-sound").play();
+            }
+            feedback.innerText = "❌";
+          }
+
+          updateEmoji(tableNum);
+          updateOverall();
+        });
+      });
+    });
+
+    function updateEmoji(tableNum) {
+      let correct = 0;
+      for (let i = 1; i <= 10; i++) {
+        const feedback = document.getElementById(`feedback-${tableNum}-${i}`);
+        if (feedback.innerText === "✅") correct++;
+      }
+      const emojiBox = document.getElementById(`emoji-${tableNum}`);
+      const score = Math.floor((correct / 10) * (emojiFaces.length - 1));
+      emojiBox.innerText = emojiFaces[score];
+    }
+
+    function updateOverall() {
+      let correctTotal = 0;
+      for (let t = 2; t <= 9; t++) {
+        for (let i = 1; i <= 10; i++) {
+          const feedback = document.getElementById(`feedback-${t}-${i}`);
+          if (feedback.innerText === "✅") correctTotal++;
+        }
+      }
+
+      const scoreDisplay = document.getElementById("score-display");
+      const progressBar = document.getElementById("overall-progress");
+      const emojiIndex = Math.floor((correctTotal / 80) * (emojiFaces.length - 1));
+      scoreDisplay.innerText = `${correctTotal} / 80 ${emojiFaces[emojiIndex]}`;
+      progressBar.value = correctTotal;
+    }
+  </script>
+
+  <!-- Sound Effects -->
+  <audio id="correct-sound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3" preload="auto"></audio>
+  <audio id="wrong-sound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3" preload="auto"></audio>
+</body>
+
+</html>
