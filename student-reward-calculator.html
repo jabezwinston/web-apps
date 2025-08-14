@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Reward Calculator</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f2f7ff;
+      padding: 30px;
+      max-width: 900px;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #0044cc;
+    }
+    .input-group {
+      margin: 20px 0;
+    }
+    label {
+      display: block;
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    input[type=range] {
+      width: 70%;
+    }
+    .range-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    input[type=number] {
+      width: 60px;
+      height: 25px;
+      padding: 20px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      text-align: center;
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+    #reward {
+      text-align: center;
+      font-size: 2em;
+      /* color: #006400; */
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    #emoji {
+      text-align: center;
+      font-size: 5em;
+      margin-top: 10px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 30px;
+      width: 100%;
+      text-align: center;
+    }
+    th, td {
+      padding: 6px 10px;
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #0044cc;
+      color: white;
+    }
+    caption {
+      caption-side: top;
+      font-weight: bold;
+      font-size: 1.1em;
+      margin-bottom: 8px;
+    }
+    math {
+      margin: 20px auto;
+      font-size: 1.5em;
+      text-align: center;
+    }
+    .formula-center {
+        text-align: center;
+    }
+
+    td {
+      text-align: center;
+      padding: 4px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      font-size: 1.3em;
+    }
+    caption {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .red    { color: #c0392b; }
+    .orange { color: #e67e22; }
+    .yellow { color: #f1c40f; }
+    .lime   { color: #27ae60; }
+    .green  { color: #1abc9c; }
+  </style>
+</head>
+<body>
+
+  <h1>🎓 Student Reward Calculator</h1>
+
+  <div class="input-group">
+    <label for="marks">Marks Scored (m):</label>
+    <div class="range-wrapper">
+      <input type="range" id="marks" min="0" max="100" value="50">
+      <input type="number" id="marks-num" min="0" max="200" value="50">
+    </div>
+  </div>
+
+  <div class="input-group">
+    <label for="total">Total Marks (M):</label>
+    <div class="range-wrapper">
+      <input type="range" id="total" min="1" max="100" value="100">
+      <input type="number" id="total-num" min="1" max="100" value="100">
+    </div>
+  </div>
+
+  <div id="reward">Reward: </div>
+  <div id="emoji">😐</div>
+
+  <div class="formula-center">
+    <math xmlns="http://www.w3.org/1998/Math/MathML" id="formula">
+        <mi>R</mi> <mo>=</mo>
+        <mn>2.1</mn>
+        <mo>&#x2062;</mo>
+        <mo>(</mo>
+        <msup><mi>e</mi><mfrac><mi>2.7·m</mi><mi>M</mi></mfrac></msup>
+        <mo>-</mo><mn>1</mn>
+        <mo>)</mo>
+        <mo>&times</mo>
+        <mo>&#x2062;</mo>
+        <mo>log</mo><mo>(</mo><mn>1</mn><mo>+</mo><mn>0.05·M</mn><mo>)</mo>
+    </math>
+  </div>
+  <div id="tables-container"></div>
+
+
+  <script>
+    const A = 2.1;   // Overall reward multiplier
+    const k1 = 2.7;  // How sharply reward increases with marks scored (try 2–4)
+    const k2 = 0.05; // Controls how quickly paper size effect flattens (try 0.05–0.2)
+
+    const marksSlider = document.getElementById("marks");
+    const marksNum = document.getElementById("marks-num");
+    const totalSlider = document.getElementById("total");
+    const totalNum = document.getElementById("total-num");
+    const rewardDisplay = document.getElementById("reward");
+    const emojiDisplay = document.getElementById("emoji");
+
+    function syncInputs(slider, number) {
+      slider.addEventListener('input', () => number.value = slider.value);
+      number.addEventListener('input', () => slider.value = number.value);
+    }
+
+    syncInputs(marksSlider, marksNum);
+    syncInputs(totalSlider, totalNum);
+
+    function syncMarks(value) {
+        marksSlider.value = value;
+        marksNum.value = value;
+    }
+
+    function syncTotal(value) {
+        totalSlider.value = value;
+        totalNum.value = value;
+    }
+
+    function clampMarks() {
+        let m = parseFloat(marksSlider.value);
+        let M = parseFloat(totalSlider.value);
+        if (m > M) {
+        syncMarks(M);
+        }
+        marksSlider.max = M;
+        marksNum.max = M;
+    }
+
+    function proportionalAdjust() {
+        let m = parseFloat(marksSlider.value);
+        let M = parseFloat(totalSlider.value);
+        let newM = parseFloat(totalSlider.value);
+        let oldM = parseFloat(totalSlider.getAttribute('data-old')) || 100;
+        let newMarks = Math.round((m / oldM) * newM);
+        if (newMarks > newM) newMarks = newM;
+        syncMarks(newMarks);
+        totalSlider.setAttribute('data-old', newM);
+    }
+
+    // Sync marks inputs
+    marksSlider.addEventListener('input', () => syncMarks(marksSlider.value));
+    marksNum.addEventListener('input', () => syncMarks(marksNum.value));
+
+    // Sync total inputs and adjust marks if needed
+    totalSlider.addEventListener('input', () => {
+        syncTotal(totalSlider.value);
+        proportionalAdjust();
+        clampMarks();
+    });
+
+    totalNum.addEventListener('input', () => {
+        syncTotal(totalNum.value);
+        proportionalAdjust();
+        clampMarks();
+    });
+
+    // Initialize data-old attribute for proportional adjustment
+    totalSlider.setAttribute('data-old', totalSlider.value);
+
+    function calculateReward(m, M) {
+      const normalized = m / M;
+      const effortPart = Math.exp(k1 * normalized) - 1;
+      const sizePart = Math.log(1 + k2 * M);
+      const reward = A * effortPart * sizePart;
+      return reward;
+    }
+
+    function update() {
+        const m = parseFloat(marksNum.value);
+        const M = parseFloat(totalNum.value);
+
+        const reward = calculateReward(m, M);
+        rewardDisplay.textContent = `Reward: ${reward.toFixed(0)}`;
+
+        const ratio = m / M;
+
+        // Emoji and Color Logic (8 levels)
+        let emoji = "🟥"; // Red block
+        let colorClass = "red";
+
+        if (ratio >= 0.95) {
+            emoji = "🥳"; colorClass = "green"; // Top
+        } else if (ratio >= 0.85) {
+            emoji = "🤩"; colorClass = "green";
+        } else if (ratio >= 0.75) {
+            emoji = "😄"; colorClass = "lime";
+        } else if (ratio >= 0.6) {
+            emoji = "😊"; colorClass = "yellow";
+        } else if (ratio >= 0.45) {
+            emoji = "😐"; colorClass = "yellow";
+        } else if (ratio >= 0.3) {
+            emoji = "😟"; colorClass = "orange";
+        } else if (ratio >= 0.15) {
+            emoji = "😢"; colorClass = "orange";
+        } else {
+            emoji = "😭"; colorClass = "red";
+        }
+
+        emojiDisplay.textContent = emoji;
+
+        // Remove old classes and apply new color class to reward
+        rewardDisplay.className = ''; // clear all classes
+        rewardDisplay.classList.add(colorClass);
+    }
+
+
+    marksSlider.addEventListener('input', update);
+    marksNum.addEventListener('input', update);
+    totalSlider.addEventListener('input', update);
+    totalNum.addEventListener('input', update);
+
+    // Generate tables
+    function createTable(M) {
+      const table = document.createElement("table");
+      const caption = document.createElement("caption");
+      caption.textContent = `Total Marks: ${M}`;
+      table.appendChild(caption);
+
+      const thead = document.createElement("thead");
+      const tr = document.createElement("tr");
+      tr.innerHTML = "<th>Marks Scored</th><th>Reward</th>";
+      thead.appendChild(tr);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      for (let m = 0; m <= M; m += 5) {
+        const reward = calculateReward(m, M);
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${m}</td><td>${reward.toFixed(0)}</td>`;
+        tbody.appendChild(row);
+      }
+
+      table.appendChild(tbody);
+      return table;
+    }
+
+    function generateTables() {
+      const container = document.getElementById("tables-container");
+      container.innerHTML = ''; // Clear previous tables
+
+      const maxM = 100;
+      const step = 5;
+      const totalMarksList = [25, 50, 100];
+      const markSteps = [];
+      for (let m = 0; m <= maxM; m += step) markSteps.push(m);
+
+      const table = document.createElement("table");
+      const caption = document.createElement("caption");
+      caption.textContent = "Rewards vs Marks Scored";
+      table.appendChild(caption);
+
+      // Header
+      const thead = document.createElement("thead");
+      const trHead = document.createElement("tr");
+      trHead.innerHTML = `<th>Marks Scored</th>`;
+      totalMarksList.forEach(M => {
+        trHead.innerHTML += `<th>Reward for ${M} marks test</th>`;
+      });
+      thead.appendChild(trHead);
+      table.appendChild(thead);
+
+      // Build Body
+      const tbody = document.createElement("tbody");
+
+      const skipMap = {}; // To track which rows/columns to skip due to rowspan
+
+      for (let i = 0; i < markSteps.length; i++) {
+        const m = markSteps[i];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${m}</td>`;
+
+        totalMarksList.forEach((M, colIndex) => {
+          const key = `${i},${colIndex}`;
+          if (skipMap[key]) return;
+
+          if (m > M) {
+            // Calculate how many rows to merge (rowspan)
+            let span = 1;
+            for (let j = i + 1; j < markSteps.length; j++) {
+              if (markSteps[j] > M) {
+                span++;
+                skipMap[`${j},${colIndex}`] = true;
+              } else {
+                break;
+              }
+            }
+            const td = document.createElement("td");
+            td.setAttribute("rowspan", span);
+            td.style.background = "#eee";
+            td.style.color = "#999";
+            td.style.textAlign = "center";
+            td.innerText = "–";
+            tr.appendChild(td);
+          } else {
+            const reward = calculateReward(m, M).toFixed(0);
+            const td = document.createElement("td");
+            td.innerText = reward;
+            tr.appendChild(td);
+          }
+        });
+
+        tbody.appendChild(tr);
+      }
+
+      table.appendChild(tbody);
+      container.appendChild(table);
+    }
+
+    update();
+    generateTables();
+  </script>
+
+</body>
+</html>
