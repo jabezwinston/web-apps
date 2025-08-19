@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WS2812B LED Control</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🌈 WS2812B LED Control</h1>
+        
+        <div class="status disconnected" id="status">
+            Disconnected - Click "Connect to Arduino" to start
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <h3>Connection & Setup</h3>
+                <button id="connectionBtn">Connect</button>
+                
+                <div class="input-group">
+                    <label for="arrangement">LED Arrangement:</label>
+                    <select id="arrangement">
+                        <option value="ring">Ring</option>
+                        <option value="strip">Strip</option>
+                        <option value="matrix">Matrix</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="ledCount">LED Count:</label>
+                    <input type="number" id="ledCount" value="8" min="1" max="256">
+                </div>
+                
+                <button id="updateLayout">Update Layout</button>
+            </div>
+
+            <div class="control-group">
+                <h3>Manual Control</h3>
+                <div class="color-picker-group">
+                    <input type="color" id="colorPicker" value="#ff0000">
+                    <button id="fillAll">Fill All LEDs</button>
+                </div>
+                <button id="clearAll">Clear All LEDs</button>
+                <button id="randomColors">Random Colors</button>
+                
+                <div class="input-group">
+                    <label for="brightness">Brightness:</label>
+                    <input type="range" id="brightness" min="0" max="255" value="128">
+                    <span id="brightnessValue">128</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <h3>LED Grid (Click to set individual colors)</h3>
+            <div id="ledGrid" class="led-grid"></div>
+        </div>
+
+        <div class="control-group">
+            <h3>Predefined Patterns</h3>
+            <div id="patterns" class="pattern-grid"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
