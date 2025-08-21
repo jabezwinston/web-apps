@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nokia OTB Picture Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Nokia OTB Picture Viewer</h1>
+        
+        <div class="archive-link-container">
+            <a href="archive.html" class="archive-link">
+                📚 View OTB Archive
+            </a>
+        </div>
+        
+        <div class="upload-section">
+            <input type="file" id="otbFile" class="file-input" accept=".otb,.bin">
+            <label for="otbFile" class="file-label">Choose OTB File</label>
+            <p style="margin-top: 12px; color: #718096; font-size: 14px;">Select a Nokia Over The Air Bitmap (.otb) file</p>
+        </div>
+
+        <div id="output"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nokia OTB Picture Archive</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .archive-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .archive-header h1 {
+            margin-bottom: 10px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .gallery-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .gallery-item h3 {
+            color: #4a5568;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+            text-align: center;
+        }
+        
+        .gallery-item .file-info {
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        
+        .gallery-item .file-info p {
+            margin: 2px 0;
+        }
+        
+        .gallery-item .bitmap-container {
+            margin-top: 15px;
+        }
+        
+        .gallery-item .bmp-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-size: 18px;
+        }
+
+        .stats {
+            background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-left: 4px solid #0ea5e9;
+        }
+        
+        .stats p {
+            margin: 5px 0;
+            font-weight: 600;
+            color: #0369a1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="archive-header">
+            <h1>Nokia OTB Picture Archive</h1>
+            <a href="index.html" class="back-link">← Back to Upload</a>
+        </div>
+        
+        <div id="stats" class="stats">
+            <p>Loading archive...</p>
+        </div>
+        
+        <div id="gallery" class="gallery">
+            <div class="loading">Loading OTB files...</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Load and display all OTB files
+        async function loadArchive() {
+            const gallery = document.getElementById('gallery');
+            const stats = document.getElementById('stats');
+            
+            try {
+                // List of OTB files in the otb_pics folder
+                const otbFiles = [
+                    '1-helicopter.otb', '2-alarm-clock.otb', 
+                    '3-first-place-winner.otb', '4-sleeping.otb',
+                    '5-dining-table.otb', '6-sunny-beach.otb',
+                    '7-football.otb', '8-sad-confused-child.otb', 
+                    '9-flowers.otb', '10-man-speaking-on-phone.otb',
+                    '11-wedding-couple.otb', '12-christmas-tree.otb',
+                    '13-gift.otb', '14-pandas.otb', '15-penguins.otb', 
+                    '16-rose.otb', '17-birthday-cake.otb',
+                    '18-skyscraper-at-night.otb'
+                ];
+                
+                let loadedCount = 0;
+                let errorCount = 0;
+                
+                gallery.innerHTML = '';
+                
+                for (const filename of otbFiles) {
+                    try {
+                        const response = await fetch(`otb_pics/${filename}`);
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+                        
+                        const arrayBuffer = await response.arrayBuffer();
+                        const data = new Uint8Array(arrayBuffer);
+                        
+                        // Use the parseOTB function from script.js
+                        const width = data[1];
+                        const height = data[2];
+                        const bitmapData = data.slice(4);
+                        
+                        // Validate dimensions
+                        if (width === 0 || height === 0) {
+                            throw new Error('Invalid dimensions: Width and height must be greater than 0');
+                        }
+                        
+                        const expectedBits = width * height;
+                        const expectedBytes = Math.ceil(expectedBits / 8);
+                        
+                        if (bitmapData.length < expectedBytes) {
+                            throw new Error(`Invalid OTB file: Expected ${expectedBytes} bytes for bitmap data, got ${bitmapData.length}`);
+                        }
+                        
+                        // Create BMP data using the createBMP function from script.js
+                        const bmpData = createBMP(width, height, bitmapData);
+                        const blob = new Blob([bmpData], { type: 'image/bmp' });
+                        const imageUrl = URL.createObjectURL(blob);
+                        
+                        loadedCount++;
+                        // Ensure BMP filename matches OTB filename (e.g., 1.otb -> 1.bmp)
+                        const baseName = filename.replace(/\.[^/.]+$/, "");
+                        const bmpFilename = baseName + '.bmp';
+                        
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'gallery-item';
+                        itemDiv.innerHTML = `
+                            <h3><a href="otb_pics/${filename}" target="_blank">${filename}</a></h3>
+                            <div class="bitmap-container">
+                                <a href="${imageUrl}" download="${bmpFilename}" style="display: block; cursor: pointer;">
+                                    <img src="${imageUrl}" alt="${filename}" class="bmp-image">
+                                </a>
+                            </div>
+                        `;
+                        gallery.appendChild(itemDiv);
+                        
+                    } catch (error) {
+                        errorCount++;
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'gallery-item';
+                        errorDiv.innerHTML = `
+                            <h3><a href="otb_pics/${filename}" target="_blank">${filename}</a></h3>
+                            <div class="error">
+                                <strong>Error:</strong> ${error.message}
+                            </div>
+                        `;
+                        gallery.appendChild(errorDiv);
+                    }
+                }
+                
+                // Update stats
+                stats.innerHTML = `
+                    <p><strong>Total Files:</strong> ${otbFiles.length}</p>
+                `;
+                
+            } catch (error) {
+                gallery.innerHTML = `
+                    <div class="error-message">
+                        <strong>Error loading archive:</strong> ${error.message}
+                    </div>
+                `;
+                stats.innerHTML = '<p>Failed to load archive</p>';
+            }
+        }
+
+        // Load the archive when the page loads
+        document.addEventListener('DOMContentLoaded', loadArchive);
+    </script>
+</body>
+</html>
