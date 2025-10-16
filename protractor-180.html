@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Protractor usage</title>
+    <style>
+    :root {
+        --primary-color: #5d8cb3;
+        --secondary-color: #a8d5ba;
+        --background-gradient-start: #f5f7fa;
+        --background-gradient-end: #e9ecef;
+        --container-bg: rgba(255, 255, 255, 0.92);
+        --text-primary: #2d3748;
+        --text-secondary: #718096;
+        --border-light: #e2e8f0;
+        --shadow-color: rgba(113, 128, 150, 0.15);
+        --control-bg: #f8fafc;
+        --canvas-border: #cbd5e0;
+        --focus-color: #4a7ba7;
+        --button-danger: #ff4757;
+        --button-action: #3498db;
+        --button-hover-darken: #2b6cb0;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, var(--background-gradient-start) 0%, var(--background-gradient-end) 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .container {
+        background: var(--container-bg);
+        border-radius: 20px;
+        padding: 25px 30px;
+        box-shadow: 0 20px 60px var(--shadow-color);
+        max-width: 900px;
+        width: 100%;
+    }
+
+    h1 {
+        text-align: center;
+        color: var(--text-primary);
+        margin-bottom: 20px;
+        font-size: 26px;
+    }
+
+    .angle-display {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 10px 20px;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        border-radius: 10px;
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        z-index: 10;
+        box-shadow: 0 4px 15px var(--shadow-color);
+        transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .angle-display.hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: var(--control-bg);
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+    }
+
+    .control-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 1 1 180px;
+        min-width: 140px;
+    }
+
+    label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+    input[type="number"],
+    input[type="range"],
+    button {
+        padding: 8px 10px;
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        font-size: 15px;
+        transition: border-color 0.3s, background-color 0.3s;
+        width: 100%;
+    }
+
+    input[type="range"] {
+        padding: 0;
+        height: 36px;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    input[type="number"]:focus,
+    input[type="range"]:focus,
+    button:focus {
+        outline: none;
+        border-color: var(--focus-color);
+    }
+
+    input[type="file"] {
+        padding: 8px 10px;
+        border: 2px solid var(--border-light);
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+        width: 100%;
+    }
+
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 10px;
+        background: white;
+        border-radius: 8px;
+        border: 2px solid var(--border-light);
+        min-height: 36px;
+    }
+
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--primary-color);
+    }
+
+    #sizeDisplay {
+        font-size: 14px;
+        color: var(--text-secondary);
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    button#clearBackground {
+        background-color: var(--button-danger);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        padding: 8px 15px;
+    }
+
+    button#resetBackground {
+        background-color: var(--button-action);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        padding: 8px 15px;
+    }
+
+    button:hover {
+        background-color: var(--button-hover-darken);
+    }
+
+    .control-row:last-child>.control-group {
+        flex: 1 1 45%;
+    }
+
+    .canvas-container {
+        position: relative;
+        background: white;
+        border-radius: 12px;
+        box-shadow: inset 0 2px 10px var(--shadow-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    canvas {
+        border: 2px solid var(--canvas-border);
+        border-radius: 8px;
+        cursor: grab;
+    }
+
+    canvas.rotating {
+        cursor: grabbing;
+    }
+
+    @media (max-width: 768px) {
+
+        .container {
+            padding: 15px;
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+
+        .controls {
+            padding: 10px;
+            gap: 10px;
+        }
+
+        .angle-display {
+            font-size: 16px;
+            padding: 8px 15px;
+            top: 10px;
+        }
+
+        .control-row {
+            gap: 10px;
+            flex-direction: row;
+            align-items: flex-start;
+        }
+
+        .control-group {
+            flex: 1 1 45%;
+            min-width: 120px;
+        }
+
+        .control-row:last-child>.control-group {
+            flex: 1 1 100%;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 480px) {
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .control-group {
+                flex: 1 1 100%;
+            }
+        }
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Using 180° Protractor</h1>
+        
+        <div class="controls">
+            <div class="control-row">
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="protractor180" checked>
+                        <label for="protractor180">Show Protractor</label>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showLines" checked>
+                        <label for="showLines">Show Lines</label>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="protractorAngle">Protractor Rotation:</label>
+                    <input type="number" id="protractorAngle" value="0" min="0" max="360" step="1">
+                </div>
+                
+                <div class="control-group">
+                    <label for="protractorSize">Protractor Size:</label>
+                    <input type="range" id="protractorSize" value="1" min="0.5" max="2" step="0.1">
+                    <span id="sizeDisplay">100%</span>
+                </div>
+            </div>
+            
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="backgroundImage">Background Image:</label>
+                    <input type="file" id="backgroundImage" accept="image/*">
+                </div>
+                
+                <div class="control-group">
+                    <button id="clearBackground" style="padding: 10px; background: #ff4757; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Clear Background</button>
+                </div>
+                
+                <div class="control-group">
+                    <button id="resetBackground" style="padding: 10px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Reset Image Position</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <div class="angle-display" id="angleDisplayContainer">
+                Angle: <span id="angleDisplay">45°</span>
+            </div>
+            <canvas id="canvas" width="880" height="1000"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const protractorAngleInput = document.getElementById('protractorAngle');
+        const protractor180Checkbox = document.getElementById('protractor180');
+        const showLinesCheckbox = document.getElementById('showLines');
+        const protractorSizeInput = document.getElementById('protractorSize');
+        const sizeDisplay = document.getElementById('sizeDisplay');
+        const backgroundImageInput = document.getElementById('backgroundImage');
+        const clearBackgroundBtn = document.getElementById('clearBackground');
+        const resetBackgroundBtn = document.getElementById('resetBackground');
+        const angleDisplay = document.getElementById('angleDisplay');
+        const angleDisplayContainer = document.getElementById('angleDisplayContainer');
+        
+        let angle1 = 0;
+        let angle2 = 45;
+        let protractorRotation = 0;
+        let protractorX = canvas.width / 2;
+        let protractorY = (canvas.height / 2) + 50;
+        let protractorScale = 1;
+        let linesCenterX = canvas.width / 2;
+        let linesCenterY = (canvas.height / 2) + 50;
+        let dragging = null;
+        let lastMouseAngle = 0;
+        let dragOffset = { x: 0, y: 0 };
+        let backgroundImage = null;
+        
+        // Background image pan and zoom variables
+        let backgroundPanX = 0;
+        let backgroundPanY = 0;
+        let backgroundZoom = 1;
+        let backgroundStartPanX = 0;
+        let backgroundStartPanY = 0;
+        let backgroundStartZoom = 1;
+        const MIN_ZOOM = 0.1;
+        const MAX_ZOOM = 5;
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const lineLength = 360;
+        const handleRadius = 8;
+        const centerDotRadius = 6;
+        
+        function toRadians(degrees) {
+            return degrees * Math.PI / 180;
+        }
+        
+        function toDegrees(radians) {
+            return radians * 180 / Math.PI;
+        }
+        
+        function getLineEndpoint(angle) {
+            const rad = toRadians(angle);
+            return {
+                x: linesCenterX + Math.cos(rad) * lineLength,
+                y: linesCenterY - Math.sin(rad) * lineLength
+            };
+        }
+        
+        function calculateAngleBetween(a1, a2) {
+            let diff = Math.abs(a1 - a2);
+            while (diff > 180) diff = 360 - diff;
+            return diff;
+        }
+        
+        function drawProtractor180() {
+            // Constants for dimensions and styles (will be scaled)
+            const PROTRACTOR_RADIUS = 320 * protractorScale;
+            const OUTER_ARC_START_ANGLE = 185;
+            const OUTER_ARC_END_ANGLE = -5;
+            const SEMICIRCLE_ARC_START_ANGLE = -180;
+            const SEMICIRCLE_ARC_END_ANGLE = 0;
+            const MIDDLE_ARC_RADIUS_1 = 215 * protractorScale;
+            const MIDDLE_ARC_RADIUS_2 = 170 * protractorScale;
+            const TINY_ARC_RADIUS = 35 * protractorScale;
+            const OUTER_LABEL_RADIUS = 195 * protractorScale;
+            const INNER_LABEL_RADIUS = 235 * protractorScale;
+            const MAJOR_MARK_INNER_RADIUS = 255 * protractorScale;
+            const MEDIUM_MARK_INNER_RADIUS = 270 * protractorScale;
+            const MINOR_MARK_INNER_RADIUS = 290 * protractorScale;
+            const OUTER_EDGE_LINE_WIDTH = 2.5 * protractorScale;
+            const MIDDLE_ARC_LINE_WIDTH = 1.5 * protractorScale;
+            const TINY_ARC_LINE_WIDTH = 2 * protractorScale;
+            const MAJOR_MARK_LINE_WIDTH = 2 * protractorScale;
+            const MEDIUM_MARK_LINE_WIDTH = 1.5 * protractorScale;
+            const MINOR_MARK_LINE_WIDTH = 0.5 * protractorScale;
+            const RADIAL_LINE_WIDTH = 1 * protractorScale;
+            const CROSSHAIR_LINE_WIDTH = 1.5 * protractorScale;
+            const CROSSHAIR_LENGTH = 10 * protractorScale;
+            const CENTER_DOT_RADIUS = 4 * protractorScale;
+            const OUTER_FONT_SIZE = 15 * protractorScale;
+            const INNER_FONT_SIZE = 18 * protractorScale;
+            const DEGREE_INTERVAL_MAJOR = 10;
+            const DEGREE_INTERVAL_MEDIUM = 5;
+            const MAX_DEGREES = 180;
+
+            ctx.save();
+            ctx.translate(protractorX, protractorY);
+            ctx.rotate(-toRadians(protractorRotation));
+
+            // Semi-circle body with transparency
+            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, PROTRACTOR_RADIUS);
+            gradient.addColorStop(0, 'rgba(220, 235, 255, 0.2)');
+            gradient.addColorStop(1, 'rgba(180, 210, 255, 0.3)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, PROTRACTOR_RADIUS, toRadians(SEMICIRCLE_ARC_START_ANGLE), toRadians(SEMICIRCLE_ARC_END_ANGLE), false);
+            ctx.lineTo(0, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // Outer edge (thicker for grabbing)
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+            ctx.lineWidth = OUTER_EDGE_LINE_WIDTH;
+            ctx.beginPath();
+            ctx.arc(0, 0, PROTRACTOR_RADIUS, toRadians(-OUTER_ARC_START_ANGLE), toRadians(-OUTER_ARC_END_ANGLE), false);
+            ctx.stroke();
+
+            // Base line connecting the endpoints
+            const leftEndX = Math.cos(toRadians(OUTER_ARC_START_ANGLE)) * PROTRACTOR_RADIUS;
+            const leftEndY = -Math.sin(toRadians(OUTER_ARC_START_ANGLE)) * PROTRACTOR_RADIUS;
+            const rightEndX = Math.cos(toRadians(OUTER_ARC_END_ANGLE)) * PROTRACTOR_RADIUS;
+            const rightEndY = -Math.sin(toRadians(OUTER_ARC_END_ANGLE)) * PROTRACTOR_RADIUS;
+            ctx.beginPath();
+            ctx.moveTo(leftEndX, leftEndY);
+            ctx.lineTo(rightEndX, rightEndY);
+            ctx.stroke();
+
+            // Semicircle arc between outer and inner readings
+            ctx.strokeStyle = 'rgba(100, 150, 200, 0.6)';
+            ctx.lineWidth = MIDDLE_ARC_LINE_WIDTH;
+            ctx.beginPath();
+            ctx.arc(0, 0, MIDDLE_ARC_RADIUS_1, Math.PI, 0);
+            ctx.stroke();
+
+            // 2nd Semicircle arc between outer and inner readings
+            ctx.strokeStyle = 'rgba(100, 150, 200, 0.6)';
+            ctx.lineWidth = MIDDLE_ARC_LINE_WIDTH;
+            ctx.beginPath();
+            ctx.arc(0, 0, MIDDLE_ARC_RADIUS_2, Math.PI, 0);
+            ctx.stroke();
+
+            // Tiny semicircle centered on base
+            ctx.strokeStyle = 'rgba(50, 100, 200, 0.8)';
+            ctx.lineWidth = TINY_ARC_LINE_WIDTH;
+            ctx.beginPath();
+            ctx.arc(0, 0, TINY_ARC_RADIUS, toRadians(180), toRadians(0), false);
+            ctx.stroke();
+            
+            // Base line for tiny semicircle
+            ctx.beginPath();
+            ctx.moveTo(-TINY_ARC_RADIUS, 0);
+            ctx.lineTo(TINY_ARC_RADIUS, 0);
+            ctx.stroke();
+
+            // Draw 1 degree markings
+            for (let i = 0; i <= MAX_DEGREES; i++) {
+                const rad = toRadians(i);
+                let innerR, lineWidth, strokeStyle;
+
+                if (i % DEGREE_INTERVAL_MAJOR === 0) {
+                    // Major marks (every 10 degrees)
+                    innerR = MAJOR_MARK_INNER_RADIUS;
+                    lineWidth = MAJOR_MARK_LINE_WIDTH;
+                    strokeStyle = 'rgba(0, 0, 0, 0.9)';
+                } else if (i % DEGREE_INTERVAL_MEDIUM === 0) {
+                    // Medium marks (every 5 degrees)
+                    innerR = MEDIUM_MARK_INNER_RADIUS;
+                    lineWidth = MEDIUM_MARK_LINE_WIDTH;
+                    strokeStyle = 'rgba(0, 0, 0, 0.7)';
+                } else {
+                    // Minor marks (every 1 degree)
+                    innerR = MINOR_MARK_INNER_RADIUS;
+                    lineWidth = MINOR_MARK_LINE_WIDTH;
+                    strokeStyle = 'rgba(0, 0, 0, 0.5)';
+                }
+                
+                ctx.strokeStyle = strokeStyle;
+                ctx.lineWidth = lineWidth;
+                
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(rad) * innerR, -Math.sin(rad) * innerR);
+                ctx.lineTo(Math.cos(rad) * PROTRACTOR_RADIUS, -Math.sin(rad) * PROTRACTOR_RADIUS);
+                ctx.stroke();
+            }
+            
+            // Lines radiating from tiny semicircle to inner readings (every 10 degrees)
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.lineWidth = RADIAL_LINE_WIDTH;
+            for (let i = 0; i <= MAX_DEGREES; i += DEGREE_INTERVAL_MAJOR) {
+                const rad = toRadians(i);
+                let startRadius = TINY_ARC_RADIUS;
+                let endRadius = MIDDLE_ARC_RADIUS_2;
+                
+                // Special cases: 0 and 180 lines extend longer
+                if (i === 0 || i === 180) {
+                    endRadius = MIDDLE_ARC_RADIUS_1 - 35;
+                }
+                
+                // Special case: 90 line extends inside tiny semicircle
+                if (i === 90) {
+                    startRadius = 0;
+                }
+                
+                const startX = Math.cos(rad) * startRadius;
+                const startY = -Math.sin(rad) * startRadius;
+                const endX = Math.cos(rad) * endRadius;
+                const endY = -Math.sin(rad) * endRadius;
+
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+            }
+            
+            // Outer number labels (0-180, clockwise from right)
+            ctx.fillStyle = 'rgba(0, 50, 150, 1)';
+            ctx.font = `bold ${OUTER_FONT_SIZE}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            for (let i = 0; i <= MAX_DEGREES; i += DEGREE_INTERVAL_MAJOR) {
+                const rad = toRadians(i);
+                const x = Math.cos(rad) * OUTER_LABEL_RADIUS;
+                const y = -Math.sin(rad) * OUTER_LABEL_RADIUS;
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(toRadians(protractorRotation));
+                ctx.fillText(i.toString(), 0, 0);
+                ctx.restore();
+            }
+
+            // Inner number labels (180-0, reading left to right along bottom)
+            ctx.fillStyle = 'rgba(200, 0, 0, 0.9)';
+            ctx.font = `bold ${INNER_FONT_SIZE}px Arial`;
+
+            for (let i = 0; i <= MAX_DEGREES; i += DEGREE_INTERVAL_MAJOR) {
+                const displayNum = MAX_DEGREES - i;
+                const rad = toRadians(i);
+                const x = Math.cos(rad) * INNER_LABEL_RADIUS;
+                const y = -Math.sin(rad) * INNER_LABEL_RADIUS;
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(toRadians(protractorRotation));
+                ctx.fillText(displayNum.toString(), 0, 0);
+                ctx.restore();
+            }
+
+            // Center crosshair
+            ctx.strokeStyle = 'rgba(50, 100, 200, 0.7)';
+            ctx.lineWidth = CROSSHAIR_LINE_WIDTH;
+            ctx.beginPath();
+            ctx.moveTo(-CROSSHAIR_LENGTH, 0);
+            ctx.lineTo(CROSSHAIR_LENGTH, 0);
+            ctx.moveTo(0, -CROSSHAIR_LENGTH);
+            ctx.lineTo(0, CROSSHAIR_LENGTH);
+            ctx.stroke();
+
+            // Center dot
+            ctx.fillStyle = 'rgba(50, 100, 200, 1)';
+            ctx.beginPath();
+            ctx.arc(0, 0, CENTER_DOT_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        
+            if (backgroundImage) {
+                ctx.save();
+                
+                // Apply transformations for pan and zoom
+                ctx.translate(backgroundPanX, backgroundPanY);
+                ctx.scale(backgroundZoom, backgroundZoom);
+                
+                // Calculate the position to center the image
+                const drawX = (canvas.width / backgroundZoom - backgroundImage.width) / 2;
+                const drawY = (canvas.height / backgroundZoom - backgroundImage.height) / 2;
+                
+                // Draw the image
+                ctx.drawImage(backgroundImage, drawX, drawY);
+                
+                ctx.restore();
+            }
+            
+            // Draw protractor (behind lines)
+            if (protractor180Checkbox.checked) {
+                drawProtractor180();
+            }
+            
+            // Only draw lines if checkbox is checked
+            if (showLinesCheckbox.checked) {
+                const end1 = getLineEndpoint(angle1);
+                const end2 = getLineEndpoint(angle2);
+            
+                // Draw line 1
+                ctx.strokeStyle = '#ff4757';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(linesCenterX, linesCenterY);
+                ctx.lineTo(end1.x, end1.y);
+                ctx.stroke();
+                
+                // Draw line 2
+                ctx.strokeStyle = '#5352ed';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.moveTo(linesCenterX, linesCenterY);
+                ctx.lineTo(end2.x, end2.y);
+                ctx.stroke();
+                
+                // Draw angle arc
+                const angleBetween = calculateAngleBetween(angle1, angle2);
+                const startAngle = Math.min(angle1, angle2);
+                const endAngle = Math.max(angle1, angle2);
+                const arcRadius = 50;
+                
+                ctx.strokeStyle = '#ffa502';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                
+                if (endAngle - startAngle <= 180) {
+                    ctx.arc(linesCenterX, linesCenterY, arcRadius, -toRadians(endAngle), -toRadians(startAngle));
+                } else {
+                    ctx.arc(linesCenterX, linesCenterY, arcRadius, -toRadians(startAngle), -toRadians(endAngle));
+                }
+                ctx.stroke();
+                
+                // Draw center point
+                ctx.fillStyle = '#2f3542';
+                ctx.beginPath();
+                ctx.arc(linesCenterX, linesCenterY, centerDotRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw handles
+                ctx.fillStyle = '#ff4757';
+                ctx.beginPath();
+                ctx.arc(end1.x, end1.y, handleRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                ctx.fillStyle = '#5352ed';
+                ctx.beginPath();
+                ctx.arc(end2.x, end2.y, handleRadius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Draw angle labels at the end of lines with gap
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Line 1 label - positioned beyond the line endpoint
+                const labelGap = 25; // Gap from the handle
+                const label1Distance = lineLength + handleRadius + labelGap;
+                const label1X = linesCenterX + Math.cos(toRadians(angle1)) * label1Distance;
+                const label1Y = linesCenterY - Math.sin(toRadians(angle1)) * label1Distance;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.strokeStyle = '#ff4757';
+                ctx.lineWidth = 2;
+                const label1Text = Math.round(angle1) + '°';
+                const label1Metrics = ctx.measureText(label1Text);
+                const padding = 6;
+                
+                ctx.fillRect(label1X - label1Metrics.width / 2 - padding, 
+                            label1Y - 10, 
+                            label1Metrics.width + padding * 2, 
+                            20);
+                ctx.strokeRect(label1X - label1Metrics.width / 2 - padding, 
+                              label1Y - 10, 
+                              label1Metrics.width + padding * 2, 
+                              20);
+                
+                ctx.fillStyle = '#ff4757';
+                ctx.fillText(label1Text, label1X, label1Y);
+                
+                // Line 2 label - positioned beyond the line endpoint
+                const label2Distance = lineLength + handleRadius + labelGap;
+                const label2X = linesCenterX + Math.cos(toRadians(angle2)) * label2Distance;
+                const label2Y = linesCenterY - Math.sin(toRadians(angle2)) * label2Distance;
+                
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.strokeStyle = '#5352ed';
+                ctx.lineWidth = 2;
+                const label2Text = Math.round(angle2) + '°';
+                const label2Metrics = ctx.measureText(label2Text);
+                
+                ctx.fillRect(label2X - label2Metrics.width / 2 - padding, 
+                            label2Y - 10, 
+                            label2Metrics.width + padding * 2, 
+                            20);
+                ctx.strokeRect(label2X - label2Metrics.width / 2 - padding, 
+                              label2Y - 10, 
+                              label2Metrics.width + padding * 2, 
+                              20);
+                
+                ctx.fillStyle = '#5352ed';
+                ctx.fillText(label2Text, label2X, label2Y);
+                
+                angleDisplay.textContent = angleBetween.toFixed(0) + '°';
+            }
+        }
+        
+        function getTouchPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            return {
+                x: touch.clientX - rect.left,
+                y: touch.clientY - rect.top
+            };
+        }
+        
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+        
+        function isNearPoint(px, py, tx, ty, threshold = handleRadius + 5) {
+            const dx = px - tx;
+            const dy = py - ty;
+            return Math.sqrt(dx * dx + dy * dy) < threshold;
+        }
+        
+        function isOnProtractorEdge(px, py) {
+            const dx = px - protractorX;
+            const dy = py - protractorY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (protractor180Checkbox.checked) {
+                const angle = toDegrees(Math.atan2(-dy, dx));
+                // Check if angle is between -5° and 185° (190° range)
+                let normalizedAngle = angle;
+                if (normalizedAngle < 0) normalizedAngle += 360;
+                const isInRange = normalizedAngle >= 355 || normalizedAngle <= 185;
+                if (dist >= 248 * protractorScale && dist <= 293 * protractorScale && isInRange) return true;
+            }
+            
+            return false;
+        }
+        
+        function isOnProtractorBody(px, py) {
+            const dx = px - protractorX;
+            const dy = py - protractorY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (protractor180Checkbox.checked) {
+                const angle = toDegrees(Math.atan2(-dy, dx));
+                let normalizedAngle = angle;
+                if (normalizedAngle < 0) normalizedAngle += 360;
+                const isInRange = normalizedAngle >= 355 || normalizedAngle <= 185;
+                // Inside the protractor body but not on edge
+                if (dist < 248 * protractorScale && isInRange) return true;
+            }
+            
+            return false;
+        }
+        
+        function isOnLineCenter(px, py) {
+            const dx = px - linesCenterX;
+            const dy = py - linesCenterY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            return dist <= centerDotRadius + 5; // 5px tolerance
+        }
+        
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getMousePos(e);
+            const end1 = getLineEndpoint(angle1);
+            const end2 = getLineEndpoint(angle2);
+            
+            if (isNearPoint(pos.x, pos.y, end1.x, end1.y)) {
+                dragging = 'line1';
+            } else if (isNearPoint(pos.x, pos.y, end2.x, end2.y)) {
+                dragging = 'line2';
+            } else if (isOnLineCenter(pos.x, pos.y)) {
+                dragging = 'lines-move';
+                dragOffset.x = pos.x - linesCenterX;
+                dragOffset.y = pos.y - linesCenterY;
+                canvas.style.cursor = 'move';
+            } else if (isOnProtractorEdge(pos.x, pos.y)) {
+                dragging = 'protractor-rotate';
+                const dx = pos.x - protractorX;
+                const dy = protractorY - pos.y;
+                lastMouseAngle = toDegrees(Math.atan2(dy, dx));
+                canvas.classList.add('rotating');
+            } else if (isOnProtractorBody(pos.x, pos.y)) {
+                dragging = 'protractor-move';
+                dragOffset.x = pos.x - protractorX;
+                dragOffset.y = pos.y - protractorY;
+                canvas.style.cursor = 'move';
+            } else if (backgroundImage) {
+                // Start panning the background image
+                dragging = 'background-pan';
+                backgroundStartPanX = backgroundPanX;
+                backgroundStartPanY = backgroundPanY;
+                dragOffset.x = pos.x;
+                dragOffset.y = pos.y;
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (!dragging) {
+                const pos = getMousePos(e);
+                if (isOnProtractorEdge(pos.x, pos.y)) {
+                    canvas.style.cursor = 'grab';
+                } else if (isOnProtractorBody(pos.x, pos.y)) {
+                    canvas.style.cursor = 'move';
+                } else if (isOnLineCenter(pos.x, pos.y)) {
+                    canvas.style.cursor = 'move';
+                } else if (backgroundImage) {
+                    canvas.style.cursor = 'grab';
+                } else {
+                    canvas.style.cursor = 'default';
+                }
+                return;
+            }
+            
+            const pos = getMousePos(e);
+            const dx = pos.x - linesCenterX;
+            const dy = linesCenterY - pos.y;
+            let newAngle = toDegrees(Math.atan2(dy, dx));
+            
+            if (newAngle < 0) newAngle += 360;
+            
+            if (dragging === 'line1') {
+                angle1 = newAngle;
+            } else if (dragging === 'line2') {
+                angle2 = newAngle;
+            } else if (dragging === 'lines-move') {
+                linesCenterX = pos.x - dragOffset.x;
+                linesCenterY = pos.y - dragOffset.y;
+            } else if (dragging === 'protractor-rotate') {
+                const pdx = pos.x - protractorX;
+                const pdy = protractorY - pos.y;
+                const newProtractorAngle = toDegrees(Math.atan2(pdy, pdx));
+                const angleDiff = newProtractorAngle - lastMouseAngle;
+                protractorRotation += angleDiff;
+                protractorRotation = protractorRotation % 360;
+                if (protractorRotation < 0) protractorRotation += 360;
+                protractorAngleInput.value = Math.round(protractorRotation);
+                lastMouseAngle = newProtractorAngle;
+            } else if (dragging === 'protractor-move') {
+                protractorX = pos.x - dragOffset.x;
+                protractorY = pos.y - dragOffset.y;
+            } else if (dragging === 'background-pan') {
+                // Calculate the new pan position
+                backgroundPanX = backgroundStartPanX + (pos.x - dragOffset.x);
+                backgroundPanY = backgroundStartPanY + (pos.y - dragOffset.y);
+            }
+            
+            draw();
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            dragging = null;
+            canvas.classList.remove('rotating');
+            canvas.style.cursor = 'default';
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            dragging = null;
+            canvas.classList.remove('rotating');
+            canvas.style.cursor = 'default';
+        });
+        
+        // Add wheel event for zooming the background image
+        canvas.addEventListener('wheel', (e) => {
+            if (!backgroundImage) return;
+            
+            e.preventDefault();
+            
+            const pos = getMousePos(e);
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, backgroundZoom + delta));
+            
+            // Calculate mouse position relative to the canvas center
+            const mouseRelX = pos.x - canvas.width / 2;
+            const mouseRelY = pos.y - canvas.height / 2;
+            
+            // Adjust pan to zoom towards mouse position
+            backgroundPanX = pos.x - (pos.x - backgroundPanX) * (newZoom / backgroundZoom);
+            backgroundPanY = pos.y - (pos.y - backgroundPanY) * (newZoom / backgroundZoom);
+            
+            backgroundZoom = newZoom;
+            draw();
+        });
+        
+        // Touch event handlers for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const pos = getTouchPos(e);
+            const end1 = getLineEndpoint(angle1);
+            const end2 = getLineEndpoint(angle2);
+            
+            if (isNearPoint(pos.x, pos.y, end1.x, end1.y)) {
+                dragging = 'line1';
+            } else if (isNearPoint(pos.x, pos.y, end2.x, end2.y)) {
+                dragging = 'line2';
+            } else if (isOnLineCenter(pos.x, pos.y)) {
+                dragging = 'lines-move';
+                dragOffset.x = pos.x - linesCenterX;
+                dragOffset.y = pos.y - linesCenterY;
+            } else if (isOnProtractorEdge(pos.x, pos.y)) {
+                dragging = 'protractor-rotate';
+                const dx = pos.x - protractorX;
+                const dy = protractorY - pos.y;
+                lastMouseAngle = toDegrees(Math.atan2(dy, dx));
+                canvas.classList.add('rotating');
+            } else if (isOnProtractorBody(pos.x, pos.y)) {
+                dragging = 'protractor-move';
+                dragOffset.x = pos.x - protractorX;
+                dragOffset.y = pos.y - protractorY;
+            } else if (backgroundImage) {
+                // Start panning the background image
+                dragging = 'background-pan';
+                backgroundStartPanX = backgroundPanX;
+                backgroundStartPanY = backgroundPanY;
+                dragOffset.x = pos.x;
+                dragOffset.y = pos.y;
+            }
+        }, { passive: false });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!dragging) return;
+            
+            const pos = getTouchPos(e);
+            const dx = pos.x - linesCenterX;
+            const dy = linesCenterY - pos.y;
+            let newAngle = toDegrees(Math.atan2(dy, dx));
+            
+            if (newAngle < 0) newAngle += 360;
+            
+            if (dragging === 'line1') {
+                angle1 = newAngle;
+            } else if (dragging === 'line2') {
+                angle2 = newAngle;
+            } else if (dragging === 'lines-move') {
+                linesCenterX = pos.x - dragOffset.x;
+                linesCenterY = pos.y - dragOffset.y;
+            } else if (dragging === 'protractor-rotate') {
+                const pdx = pos.x - protractorX;
+                const pdy = protractorY - pos.y;
+                const newProtractorAngle = toDegrees(Math.atan2(pdy, pdx));
+                const angleDiff = newProtractorAngle - lastMouseAngle;
+                protractorRotation += angleDiff;
+                protractorRotation = protractorRotation % 360;
+                if (protractorRotation < 0) protractorRotation += 360;
+                protractorAngleInput.value = Math.round(protractorRotation);
+                lastMouseAngle = newProtractorAngle;
+            } else if (dragging === 'protractor-move') {
+                protractorX = pos.x - dragOffset.x;
+                protractorY = pos.y - dragOffset.y;
+            } else if (dragging === 'background-pan') {
+                // Calculate the new pan position
+                backgroundPanX = backgroundStartPanX + (pos.x - dragOffset.x);
+                backgroundPanY = backgroundStartPanY + (pos.y - dragOffset.y);
+            }
+            
+            draw();
+        }, { passive: false });
+        
+        canvas.addEventListener('touchend', () => {
+            dragging = null;
+            canvas.classList.remove('rotating');
+        });
+        
+        protractorAngleInput.addEventListener('input', () => {
+            protractorRotation = parseFloat(protractorAngleInput.value) || 0;
+            protractorRotation = protractorRotation % 360;
+            if (protractorRotation < 0) protractorRotation += 360;
+            draw();
+        });
+        
+        protractor180Checkbox.addEventListener('change', draw);
+        
+        showLinesCheckbox.addEventListener('change', () => {
+            draw();
+            // Toggle visibility of angle display based on checkbox state
+            if (showLinesCheckbox.checked) {
+                angleDisplayContainer.classList.remove('hidden');
+            } else {
+                angleDisplayContainer.classList.add('hidden');
+            }
+        });
+        
+        protractorSizeInput.addEventListener('input', () => {
+            protractorScale = parseFloat(protractorSizeInput.value);
+            sizeDisplay.textContent = Math.round(protractorScale * 100) + '%';
+            draw();
+        });
+        
+        backgroundImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        backgroundImage = img;
+                        // Reset pan and zoom when a new image is loaded
+                        backgroundPanX = 0;
+                        backgroundPanY = 0;
+                        backgroundZoom = 1;
+                        draw();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        clearBackgroundBtn.addEventListener('click', () => {
+            backgroundImage = null;
+            backgroundImageInput.value = '';
+            backgroundPanX = 0;
+            backgroundPanY = 0;
+            backgroundZoom = 1;
+            draw();
+        });
+        
+        resetBackgroundBtn.addEventListener('click', () => {
+            if (backgroundImage) {
+                backgroundPanX = 0;
+                backgroundPanY = 0;
+                backgroundZoom = 1;
+                draw();
+            }
+        });
+        
+        draw();
+    </script>
+</body>
+</html>
